@@ -1,0 +1,23 @@
+{
+  "name": "ai-travelmate",
+  "version": "1.0.0",
+  "description": "AI TravelMate — Your Personal AI Travel Planner",
+  "scripts": {
+    "server": "npm --prefix server start",
+    "client": "npm --prefix client dev",
+    "build": "npm --prefix client build",
+    "start": "node server/server.js"
+  },
+  "keywords": [
+    "travel",
+    "ai",
+    "itinerary",
+    "planner",
+    "human-centered-design"
+  ],
+  "author": "AI TravelMate Team",
+  "license": "MIT",
+  "dependencies": {
+    "puppeteer-core": "^25.14.0"
+  }
+}
