@@ -52,7 +52,7 @@ export default function ItineraryResults({
     travelers,
     userBudget,
     interests = [],
-    travelStyle,
+    travelStyle = 'Balanced',
     tripOverview,
     matchExplanations = [],
     itineraryDays = [],
@@ -188,7 +188,7 @@ export default function ItineraryResults({
         {/* Content Body Inside Card */}
         <div className="p-6 sm:p-8 space-y-6">
           <p className="text-sm sm:text-base text-[#5A5F58] leading-relaxed font-light">
-            Designed around your love for <strong className="text-[#252A27] font-semibold">{interests.slice(0, 3).join(', ')}</strong> with a {travelStyle.toLowerCase()} pace.
+            Designed around your love for <strong className="text-[#252A27] font-semibold">{(interests || []).slice(0, 3).join(', ')}</strong> with a {(travelStyle || 'Balanced').toLowerCase()} pace.
           </p>
 
           {/* Key Overview Stat Cards */}

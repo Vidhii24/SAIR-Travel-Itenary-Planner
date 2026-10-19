@@ -22,7 +22,47 @@ import {
   deleteTripFromStorage,
   optimizeBudgetApi
 } from './services/api';
-import { Sparkles, ShieldCheck, AlertTriangle, Code, ArrowRight } from 'lucide-react';
+import { Sparkles, ShieldCheck, AlertTriangle, Code, ArrowRight, RefreshCw } from 'lucide-react';
+
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+  componentDidCatch(error, errorInfo) {
+    console.error('ErrorBoundary caught:', error, errorInfo);
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-[60vh] flex flex-col items-center justify-center p-8 text-center space-y-4">
+          <div className="w-14 h-14 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center mx-auto">
+            <AlertTriangle className="w-7 h-7" />
+          </div>
+          <h2 className="text-2xl font-serif text-[#252A27]">Something went wrong</h2>
+          <p className="text-sm text-[#747873] max-w-md">
+            {this.state.error?.message || 'An unexpected rendering error occurred.'}
+          </p>
+          <button
+            onClick={() => {
+              this.setState({ hasError: false, error: null });
+              if (this.props.onReset) this.props.onReset();
+              else window.location.reload();
+            }}
+            className="px-6 py-2.5 rounded-full bg-[#264638] text-white text-xs font-semibold uppercase tracking-wider flex items-center gap-2 cursor-pointer shadow-sm hover:bg-[#1A3228]"
+          >
+            <RefreshCw className="w-3.5 h-3.5" />
+            <span>Try Again</span>
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 export default function App() {
   const [activePage, setActivePage] = useState('home');
@@ -247,82 +287,84 @@ export default function App() {
       />
 
       {/* Main Dynamic View Content */}
-      <main className={`flex-1 w-full ${activePage === 'home' ? '' : 'pt-20'}`}>
-        {activePage === 'home' && (
-          <LandingPage
-            onStartPlanning={handleStartPlanning}
-            onExploreDestinations={() => { setActivePage('explore'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-            onSelectDestinationForTrip={handleSelectDestinationForTrip}
-          />
-        )}
+      <ErrorBoundary onReset={() => setActivePage('home')}>
+        <main className={`flex-1 w-full ${activePage === 'home' ? '' : 'pt-20'}`}>
+          {activePage === 'home' && (
+            <LandingPage
+              onStartPlanning={handleStartPlanning}
+              onExploreDestinations={() => { setActivePage('explore'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+              onSelectDestinationForTrip={handleSelectDestinationForTrip}
+            />
+          )}
 
-        {activePage === 'wizard' && (
-          <TripWizard
-            initialDestination={wizardInitialDest}
-            onGenerate={handleGenerateItinerary}
-            isLoading={isGenerating}
-          />
-        )}
+          {activePage === 'wizard' && (
+            <TripWizard
+              initialDestination={wizardInitialDest}
+              onGenerate={handleGenerateItinerary}
+              isLoading={isGenerating}
+            />
+          )}
 
-        {activePage === 'results' && (
-          <ItineraryResults
-            itinerary={currentItinerary}
-            onSaveTrip={handleSaveActiveTrip}
-            onEditPreferences={() => { setActivePage('wizard'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-            onRegenerate={() => handleGenerateItinerary(currentItinerary)}
-            onViewBudget={() => { setActivePage('budget'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-            onUpdateItinerary={setCurrentItinerary}
-            onApplyFeedback={handleFeedbackAction}
-            showToast={showToast}
-          />
-        )}
+          {activePage === 'results' && (
+            <ItineraryResults
+              itinerary={currentItinerary}
+              onSaveTrip={handleSaveActiveTrip}
+              onEditPreferences={() => { setActivePage('wizard'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+              onRegenerate={() => handleGenerateItinerary(currentItinerary)}
+              onViewBudget={() => { setActivePage('budget'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+              onUpdateItinerary={setCurrentItinerary}
+              onApplyFeedback={handleFeedbackAction}
+              showToast={showToast}
+            />
+          )}
 
-        {activePage === 'budget' && (
-          <BudgetPlanner
-            itinerary={currentItinerary}
-            onUpdateItinerary={setCurrentItinerary}
-            showToast={showToast}
-            onNavigateToWizard={handleStartPlanning}
-          />
-        )}
+          {activePage === 'budget' && (
+            <BudgetPlanner
+              itinerary={currentItinerary}
+              onUpdateItinerary={setCurrentItinerary}
+              showToast={showToast}
+              onNavigateToWizard={handleStartPlanning}
+            />
+          )}
 
-        {activePage === 'explore' && (
-          <DestinationExplorer
-            onSelectDestinationForTrip={handleSelectDestinationForTrip}
-          />
-        )}
+          {activePage === 'explore' && (
+            <DestinationExplorer
+              onSelectDestinationForTrip={handleSelectDestinationForTrip}
+            />
+          )}
 
-        {activePage === 'my-trips' && (
-          <MyTrips
-            savedTrips={savedTrips}
-            onViewItinerary={handleViewTrip}
-            onEditTrip={handleEditTrip}
-            onDuplicateTrip={handleDuplicateTrip}
-            onDeleteTrip={handleDeleteTrip}
-            onStartPlanning={handleStartPlanning}
-          />
-        )}
+          {activePage === 'my-trips' && (
+            <MyTrips
+              savedTrips={savedTrips}
+              onViewItinerary={handleViewTrip}
+              onEditTrip={handleEditTrip}
+              onDuplicateTrip={handleDuplicateTrip}
+              onDeleteTrip={handleDeleteTrip}
+              onStartPlanning={handleStartPlanning}
+            />
+          )}
 
-        {activePage === 'profile' && (
-          <UserProfile
-            showToast={showToast}
-            onPreferencesUpdated={(prof) => {
-              showToast({
-                type: 'info',
-                title: 'Default Profile Updated',
-                message: `Origin set to ${prof.startingCity || 'Indore'}.`
-              });
-            }}
-          />
-        )}
+          {activePage === 'profile' && (
+            <UserProfile
+              showToast={showToast}
+              onPreferencesUpdated={(prof) => {
+                showToast({
+                  type: 'info',
+                  title: 'Default Profile Updated',
+                  message: `Origin set to ${prof.startingCity || 'Indore'}.`
+                });
+              }}
+            />
+          )}
 
-        {activePage === 'academic' && (
-          <AcademicShowcase
-            onNavigateToWizard={handleStartPlanning}
-            onNavigateToResults={() => setActivePage('results')}
-          />
-        )}
-      </main>
+          {activePage === 'academic' && (
+            <AcademicShowcase
+              onNavigateToWizard={handleStartPlanning}
+              onNavigateToResults={() => setActivePage('results')}
+            />
+          )}
+        </main>
+      </ErrorBoundary>
 
       {/* Global Luxury Footer */}
       <Footer

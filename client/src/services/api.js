@@ -35,10 +35,11 @@ export async function generateItineraryApi(preferences) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(preferences)
     });
-    const data = await res.json();
-    if (!res.ok) {
-      throw new Error(data.error || 'Failed to generate itinerary');
+    const ct = res.headers.get('content-type') || '';
+    if (!res.ok || !ct.includes('application/json')) {
+      throw new Error(`Server returned ${res.status}`);
     }
+    const data = await res.json();
     return data;
   } catch (err) {
     console.warn('Backend unavailable, generating via client-side engine:', err.message);
@@ -53,7 +54,10 @@ export async function optimizeBudgetApi(currentPlan) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ currentPlan })
     });
-    if (!res.ok) throw new Error('Optimization failed');
+    const ct = res.headers.get('content-type') || '';
+    if (!res.ok || !ct.includes('application/json')) {
+      throw new Error(`Server returned ${res.status}`);
+    }
     return await res.json();
   } catch (err) {
     // Client-side fallback optimization
@@ -260,6 +264,14 @@ function generateClientSideItinerary(pref) {
     durationDays: duration,
     travelers,
     userBudget: totalBudget,
+    interests: pref.interests || ['Historical Monuments', 'Local Food'],
+    travelStyle: pref.travelStyle || 'Balanced',
+    travelGroup: pref.travelGroup || 'Solo',
+    dietaryPreferences: pref.dietaryPreferences || 'Vegetarian',
+    preferredTransportation: pref.preferredTransportation || 'Train / Sleeper',
+    accommodationPreferences: pref.accommodationPreferences || 'Budget Hotel / Guesthouse',
+    departureDate: pref.departureDate || '',
+    returnDate: pref.returnDate || '',
     tripOverview: `Curated ${duration}-day ${destName} trip for ${travelers} traveler(s) balancing ${pref.interests?.join(', ') || 'heritage and cuisine'}.`,
     matchExplanations: [
       `Designed around your chosen interests: ${(pref.interests || ['Heritage', 'Food']).join(', ')}.`,
